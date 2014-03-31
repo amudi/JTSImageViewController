@@ -1244,36 +1244,50 @@
         self.imageView.transform = CGAffineTransformIdentity;
         self.imageView.center = CGPointMake(self.scrollView.contentSize.width/2.0f, self.scrollView.contentSize.height/2.0f);
     } else {
-        [UIView
-         animateWithDuration:0.7
-         delay:0
-         usingSpringWithDamping:0.7
-         initialSpringVelocity:0
-         options:UIViewAnimationOptionAllowUserInteraction |
-         UIViewAnimationOptionBeginFromCurrentState
-         animations:^{
-             self.imageView.transform = CGAffineTransformIdentity;
-             self.imageView.center = CGPointMake(self.scrollView.contentSize.width/2.0f, self.scrollView.contentSize.height/2.0f);
-         } completion:nil];
+        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+            [UIView
+             animateWithDuration:0.7
+             delay:0
+             usingSpringWithDamping:0.7
+             initialSpringVelocity:0
+             options:UIViewAnimationOptionAllowUserInteraction |
+             UIViewAnimationOptionBeginFromCurrentState
+             animations:^{
+                 self.imageView.transform = CGAffineTransformIdentity;
+                 self.imageView.center = CGPointMake(self.scrollView.contentSize.width/2.0f, self.scrollView.contentSize.height/2.0f);
+             } completion:nil];
+        } else {
+            [UIView animateWithDuration:0.7
+                             animations:^{
+                                 self.imageView.transform = CGAffineTransformIdentity;
+                                 self.imageView.center = CGPointMake(self.scrollView.contentSize.width/2.0f, self.scrollView.contentSize.height/2.0f);
+                             } completion:nil];
+        }
+        
     }
 }
 
 - (void)dismissImageWithFlick:(CGPoint)velocity {
-    [self setImageIsFlickingAwayForDismissal:YES];
-    __weak JTSImageViewController *weakSelf = self;
-    UIPushBehavior *push = [[UIPushBehavior alloc] initWithItems:@[self.imageView] mode:UIPushBehaviorModeInstantaneous];
-    [push setPushDirection:CGVectorMake(velocity.x*0.1, velocity.y*0.1)];
-    [push setTargetOffsetFromCenter:self.imageDragOffsetFromImageCenter forItem:self.imageView];
-    [push setAction:^{
-        if ([weakSelf imageViewIsOffscreen]) {
-            [weakSelf.animator removeAllBehaviors];
-            [weakSelf setAttachmentBehavior:nil];
-            [weakSelf.imageView removeFromSuperview];
-            [weakSelf dismiss:YES];
-        }
-    }];
-    [self.animator removeBehavior:self.attachmentBehavior];
-    [self.animator addBehavior:push];
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+        [self setImageIsFlickingAwayForDismissal:YES];
+        __weak JTSImageViewController *weakSelf = self;
+        UIPushBehavior *push = [[UIPushBehavior alloc] initWithItems:@[self.imageView] mode:UIPushBehaviorModeInstantaneous];
+        [push setPushDirection:CGVectorMake(velocity.x*0.1, velocity.y*0.1)];
+        [push setTargetOffsetFromCenter:self.imageDragOffsetFromImageCenter forItem:self.imageView];
+        [push setAction:^{
+            if ([weakSelf imageViewIsOffscreen]) {
+                [weakSelf.animator removeAllBehaviors];
+                [weakSelf setAttachmentBehavior:nil];
+                [weakSelf.imageView removeFromSuperview];
+                [weakSelf dismiss:YES];
+            }
+        }];
+        [self.animator removeBehavior:self.attachmentBehavior];
+        [self.animator addBehavior:push];
+    } else {
+        [self.imageView removeFromSuperview];
+        [self dismiss:YES];
+    }
 }
 
 - (CGFloat)appropriateDensityForView:(UIView *)view {
