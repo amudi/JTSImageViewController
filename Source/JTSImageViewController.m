@@ -241,6 +241,20 @@
             [self startProgressTimer];
         } else {
             
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+                NSData *imageData = [NSData dataWithContentsOfURL:imageInfo.imageURL];
+                UIImage *image = [UIImage imageWithData:imageData];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if ([weakSelf isViewLoaded]) {
+                        [weakSelf updateInterfaceWithImage:image];
+                    } else {
+                        [weakSelf setImage:image];
+                    }
+                    [weakSelf cancelProgressTimer];
+                    [self startProgressTimer];
+                });
+            });
+            
         }
     }
 }

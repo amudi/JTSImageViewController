@@ -30,7 +30,7 @@
     
     // Create image info
     JTSImageInfo *imageInfo = [[JTSImageInfo alloc] init];
-    imageInfo.image = [self.bigImageButton backgroundImageForState:UIControlStateNormal];
+    imageInfo.imageURL = [NSURL URLWithString:@"http://lorempixel.com/500/200"];
     imageInfo.referenceRect = self.bigImageButton.frame;
     imageInfo.referenceView = self.bigImageButton.superview;
     
