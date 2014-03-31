@@ -225,19 +225,23 @@
         [self setImageIsBeingReadFromDisk:fromDisk];
         
         __weak JTSImageViewController *weakSelf = self;
-        NSURLSessionDataTask *task = [JTSSimpleImageDownloader downloadImageForURL:imageInfo.imageURL canonicalURL:imageInfo.canonicalImageURL completion:^(UIImage *image) {
+        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+            NSURLSessionDataTask *task = [JTSSimpleImageDownloader downloadImageForURL:imageInfo.imageURL canonicalURL:imageInfo.canonicalImageURL completion:^(UIImage *image) {
 #warning Handle a nil image.
-            if ([weakSelf isViewLoaded]) {
-                [weakSelf updateInterfaceWithImage:image];
-            } else {
-                [weakSelf setImage:image];
-            }
-            [weakSelf cancelProgressTimer];
-        }];
-        
-        [self setImageDownloadDataTask:task];
-        
-        [self startProgressTimer];
+                if ([weakSelf isViewLoaded]) {
+                    [weakSelf updateInterfaceWithImage:image];
+                } else {
+                    [weakSelf setImage:image];
+                }
+                [weakSelf cancelProgressTimer];
+            }];
+            
+            [self setImageDownloadDataTask:task];
+            
+            [self startProgressTimer];
+        } else {
+            
+        }
     }
 }
 
@@ -274,7 +278,9 @@
     [self.view addSubview:self.progressContainer];
     self.progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleDefault];
     self.progressView.progress = 0;
-    self.progressView.tintColor = [UIColor whiteColor];
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+        self.progressView.tintColor = [UIColor whiteColor];
+    }
     self.progressView.trackTintColor = [UIColor darkGrayColor];
     CGRect progressFrame = self.progressView.frame;
     progressFrame.size.width = 128.0f;
@@ -326,7 +332,9 @@
         tintColor = [self.optionsDelegate accentColorForAltTextInImageViewer:self];
     }
     if (tintColor != nil) {
-        self.textView.tintColor = tintColor;
+        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+            self.textView.tintColor = tintColor;
+        }
     }
     
     self.textView.textAlignment = NSTextAlignmentCenter;
@@ -413,7 +421,9 @@
                      [weakSelf.blurredSnapshotView setAlpha:1];
                  }
                  
-                 [weakSelf addMotionEffectsToSnapshotView];
+                 if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+                     [weakSelf addMotionEffectsToSnapshotView];
+                 }
                  [weakSelf.blackBackdrop setAlpha:BLACK_BACKDROP_ALPHA_NORMAL];
                  
                  if (mustRotateDuringTransition) {
@@ -754,10 +764,13 @@
 
 - (UIView *)snapshotFromParentmostViewController:(UIViewController *)viewController {
     
-    UIViewController *presentingViewController = viewController.view.window.rootViewController;
-    while (presentingViewController.presentedViewController) presentingViewController = presentingViewController.presentedViewController;
-    UIView *snapshot = [presentingViewController.view snapshotViewAfterScreenUpdates:YES];
-    [snapshot setClipsToBounds:NO];
+    UIView *snapshot = nil;
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+        UIViewController *presentingViewController = viewController.view.window.rootViewController;
+        while (presentingViewController.presentedViewController) presentingViewController = presentingViewController.presentedViewController;
+        snapshot = [presentingViewController.view snapshotViewAfterScreenUpdates:YES];
+        [snapshot setClipsToBounds:NO];
+    }
     return snapshot;
 }
 
