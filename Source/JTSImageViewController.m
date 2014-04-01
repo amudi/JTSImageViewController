@@ -37,6 +37,7 @@
 @property (assign, nonatomic) BOOL scrollViewIsAnimatingAZoom;
 @property (assign, nonatomic) BOOL imageIsBeingReadFromDisk;
 @property (assign, nonatomic) BOOL isManuallyResizingTheScrollViewFrame;
+@property (assign, nonatomic) BOOL imageDownloadFailed;
 
 @property (assign, nonatomic) CGRect startingReferenceFrameForThumbnail;
 @property (assign, nonatomic) CGRect startingReferenceFrameForThumbnailInPresentingViewControllersOriginalOrientation;
@@ -227,18 +228,26 @@
         __weak JTSImageViewController *weakSelf = self;
         if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
             NSURLSessionDataTask *task = [JTSSimpleImageDownloader downloadImageForURL:imageInfo.imageURL canonicalURL:imageInfo.canonicalImageURL completion:^(UIImage *image) {
-#warning Handle a nil image.
+            [weakSelf cancelProgressTimer];
+            if (image) {
                 if ([weakSelf isViewLoaded]) {
                     [weakSelf updateInterfaceWithImage:image];
                 } else {
                     [weakSelf setImage:image];
                 }
-                [weakSelf cancelProgressTimer];
-            }];
-            
-            [self setImageDownloadDataTask:task];
-            
-            [self startProgressTimer];
+            } else {
+                [weakSelf setImageDownloadFailed:YES];
+                if (weakSelf.isPresented && weakSelf.isAnimatingAPresentationOrDismissal == NO) {
+                    [weakSelf dismiss:YES];
+                }
+                // If we're still presenting, at the end of presentation,
+                // we'll auto dismiss.
+            }
+        }];
+        
+        [self setImageDownloadDataTask:task];
+        
+        [self startProgressTimer];
         } else {
             
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
@@ -455,6 +464,9 @@
                  [weakSelf setIsAnimatingAPresentationOrDismissal:NO];
                  [weakSelf.view setUserInteractionEnabled:YES];
                  [weakSelf setIsPresented:YES];
+                 if (weakSelf.imageDownloadFailed) {
+                     [weakSelf dismiss:YES];
+                 }
              }];
         });
     }];
@@ -529,6 +541,9 @@
                  [weakSelf setIsAnimatingAPresentationOrDismissal:NO];
                  [weakSelf.view setUserInteractionEnabled:YES];
                  [weakSelf setIsPresented:YES];
+                 if (weakSelf.imageDownloadFailed) {
+                     [weakSelf dismiss:YES];
+                 }
              }];
         });
     }];
@@ -757,16 +772,25 @@
         duration *= 4;
     }
     
+    // Replace the text view with a snapshot of itself,
+    // to prevent the text from reflowing during the dismissal animation.
+    UIView *textViewSnapshot = [self.textView snapshotViewAfterScreenUpdates:YES];
+    [textViewSnapshot setFrame:self.textView.frame];
+    [self.textView.superview insertSubview:textViewSnapshot aboveSubview:self.textView];
+    [self.textView removeFromSuperview];
+    [self.textView setDelegate:nil];
+    [self setTextView:nil];
+
     [UIView animateWithDuration:duration delay:0 options:UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionCurveEaseInOut animations:^{
         weakSelf.snapshotView.transform = weakSelf.currentSnapshotRotationTransform;
         [weakSelf removeMotionEffectsFromSnapshotView];
         [weakSelf.blackBackdrop setAlpha:0];
-        [weakSelf.textView setAlpha:0];
+        [textViewSnapshot setAlpha:0];
         if (weakSelf.backgroundStyle == JTSImageViewControllerBackgroundStyle_ScaledDimmedBlurred) {
             [weakSelf.blurredSnapshotView setAlpha:0];
         }
         CGFloat targetScale = TRANSITION_THUMBNAIL_MAX_ZOOM;
-        [weakSelf.textView setTransform:CGAffineTransformMakeScale(targetScale, targetScale)];
+        [textViewSnapshot setTransform:CGAffineTransformMakeScale(targetScale, targetScale)];
     } completion:^(BOOL finished) {
         [weakSelf.presentingViewController dismissViewControllerAnimated:NO completion:^{
             [weakSelf.dismissalDelegate imageViewerDidDismiss:weakSelf];
