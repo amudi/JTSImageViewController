@@ -473,7 +473,8 @@
                  
                  [weakSelf setIsTransitioningFromInitialModalToInteractiveState:YES];
                  
-                 if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
+                 if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1 &&
+                     [UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
                      [weakSelf setNeedsStatusBarAppearanceUpdate];
                  } else {
                      [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
@@ -775,7 +776,8 @@
                 }
                 
                 // Rotation not needed, so fade the status bar back in. Looks nicer.
-                if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
+                if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1 &&
+                    [UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
                     [weakSelf setNeedsStatusBarAppearanceUpdate];
                 } else {
                     [[UIApplication sharedApplication] setStatusBarHidden:weakSelf.statusBarHiddenPriorToPresentation
