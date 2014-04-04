@@ -564,7 +564,8 @@ typedef struct {
                  
                  _flags.isTransitioningFromInitialModalToInteractiveState = YES;
                  
-                 if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
+                 if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1 &&
+                     [UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
                      [weakSelf setNeedsStatusBarAppearanceUpdate];
                  } else {
                      [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
@@ -923,7 +924,8 @@ typedef struct {
                 }
                 
                 // Rotation not needed, so fade the status bar back in. Looks nicer.
-                if ([UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
+                if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1 &&
+                    [UIApplication sharedApplication].jts_usesViewControllerBasedStatusBarAppearance) {
                     [weakSelf setNeedsStatusBarAppearanceUpdate];
                 } else {
                     [[UIApplication sharedApplication] setStatusBarHidden:_startingInfo.statusBarHiddenPriorToPresentation
