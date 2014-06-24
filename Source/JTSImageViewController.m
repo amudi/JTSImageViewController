@@ -580,9 +580,8 @@ typedef struct {
                  
                  if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
                      [weakSelf addMotionEffectsToSnapshotView];
-	             [weakSelf.blackBackdrop setAlpha:self.alphaForBackgroundDimmingOverlay];
+                     [weakSelf.blackBackdrop setAlpha:self.alphaForBackgroundDimmingOverlay];
                  }
-                 [weakSelf.blackBackdrop setAlpha:BLACK_BACKDROP_ALPHA_NORMAL];
                  
                  if (mustRotateDuringTransition) {
                      [weakSelf.imageView setTransform:CGAffineTransformIdentity];
