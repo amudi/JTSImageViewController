@@ -1100,7 +1100,9 @@ typedef struct {
     UIGraphicsBeginImageContextWithOptions(scaledBounds.size, YES, 0);
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextConcatCTM(context, CGAffineTransformMakeTranslation(scaledOuterBleed, scaledOuterBleed));
-    [presentingViewController.view drawViewHierarchyInRect:scaledDrawingArea afterScreenUpdates:YES];
+    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
+        [presentingViewController.view drawViewHierarchyInRect:scaledDrawingArea afterScreenUpdates:YES];
+    }
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     
     UIGraphicsEndImageContext();
